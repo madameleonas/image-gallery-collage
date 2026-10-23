@@ -113,24 +113,38 @@
   </div>
 
   <script>
-    function resizeItems() {
-      var gap = 12;
-      var rowHeight = 10;
-      document.querySelectorAll('.gallery-item').forEach(function(item) {
-        var img = item.querySelector('img');
-        if (img.complete) {
-          var span = Math.ceil((img.naturalHeight / img.naturalWidth * item.offsetWidth + gap) / (rowHeight + gap));
-          item.style.gridRowEnd = 'span ' + span;
-        } else {
-          img.addEventListener('load', function() {
-            var span = Math.ceil((img.naturalHeight / img.naturalWidth * item.offsetWidth + gap) / (rowHeight + gap));
-            item.style.gridRowEnd = 'span ' + span;
-          });
-        }
-      });
+    var GAP = 12;        // matches .gallery gap
+    var ROW_HEIGHT = 10; // matches .gallery grid-auto-rows
+    var items = document.querySelectorAll('.gallery-item');
+
+    // Each item spans enough 10px rows to show its image at its natural aspect ratio
+    function sizeItem(item) {
+      var img = item.querySelector('img');
+      if (!img.naturalWidth) return; // not loaded yet; its load listener will size it
+      var height = img.naturalHeight / img.naturalWidth * item.offsetWidth;
+      item.style.gridRowEnd = 'span ' + Math.ceil((height + GAP) / (ROW_HEIGHT + GAP));
     }
-    resizeItems();
-    window.addEventListener('resize', resizeItems);
+
+    items.forEach(function(item) {
+      var img = item.querySelector('img');
+      if (img.complete) {
+        sizeItem(item);
+      } else {
+        // Attached once per image (previously re-attached on every resize)
+        img.addEventListener('load', function() { sizeItem(item); }, { once: true });
+      }
+    });
+
+    // Recalculate at most once per frame while the window resizes
+    var pending = false;
+    window.addEventListener('resize', function() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function() {
+        items.forEach(sizeItem);
+        pending = false;
+      });
+    });
   </script>
 
 </body>
