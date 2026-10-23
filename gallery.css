@@ -27,7 +27,6 @@ body {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .gallery-item img {
@@ -80,4 +79,20 @@ body {
 .gallery-item:hover figcaption {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Touch screens have no hover: show captions and the gradient by default */
+@media (hover: none) {
+  .gallery-item::after { opacity: 1; }
+  .gallery-item figcaption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion: no zoom, captions fade without sliding */
+@media (prefers-reduced-motion: reduce) {
+  .gallery-item img { transition: none; }
+  .gallery-item:hover img { transform: none; }
+  .gallery-item figcaption { transform: none; }
 }
